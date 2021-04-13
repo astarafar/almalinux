@@ -85,6 +85,8 @@ Ordered lists will be used to specify an order-dependent series of actions.
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 > Specific definitions of these terms are provided in [RFC 2119 - Key words for use in RFCs to Indicate Requirement Levels](https://tools.ietf.org/html/rfc2119).
 
+------
+
 ## **Introduction**
 
 First, let's talk about what security is in the context of a network-connected multi-user operating system. We're also going to discuss what it **isn't**.
@@ -100,11 +102,17 @@ Integrity is the assurance that neither the system nor the data contained within
 ### **3. Availability**
 Availability is the assurance that the system can be accessed by an authorized user and perform its intended functions as needed. A denial of service attack that exhausts the system's resources or otherwise makes it so that the system can't be used is an example of loss of availability. An attacker exploiting a recently-disclosed vulnerability and causing the system to panic and halt would be another example of loss of availability.
 
+<br />
+
 ### **System Security: What It Is**
 Proper system security is finding the right balance of confidentiality, integrity, and availability based on the purpose of the system and a realistic evaluation of what threats it may face, and putting measures in place to provide the level of protection required.
 
+<br />
+
 ### **System Security: What It Isn't**
 Proper system security is not flipping every switch and turning every dial up to its absolute maximum. It is easy to make the system either completely unusable or so cumbersome that it might as well be, or to expend so much time and resources that the cost of securing the system has exceeded anything you might lose should the system be compromised.
+
+<br />
 
 ### **Principle of Least Privilege**
 One of the core principles behind system security is the *principle of least privilege*, which is the concept that every user, process, service, and so on has only that level of access required to perform its given task, and no more. Where appropriate, notes will be provided indicating how this principle has been applied to a given recommendation. Such notes will be prefixed with the characters "PLP."
@@ -128,7 +136,22 @@ Vendors may tell you that their software is only compatible with a certain point
 
 > As always, exceptions exist. Example: The vendor ships a package that relies on a very specific kernel version. In this case, updating the kernel would render that package nonfunctional; this would be a sane reason to version-lock the kernel. However, version-locking packages SHOULD be done as a last resort, as this can have follow-on effects for other packages on the system.
 
-### ****Default Configuration****
+<br />
+
+### **SELinux**
+SELinux is an extremely powerful mandatory access control (MAC) layer that is enabled by default within AlmaLinux.
+
+SELinux is capable of blocking a large number of actions that would otherwise result in system promise, and therefore SHOULD NOT be disabled.
+
+It is acceptable to place the system in `Permissive` mode to perform troubleshooting, but the system SHOULD be returned to `Enforcing` mode as soon as troubleshooting is completed.
+
+There are a litany of resources available on the Internet that describe the concepts and internal workings of SELinux, as well as tools and techniques for troubleshooting issues and adjusting system policies. Use them!
+
+There are a number of software packages whose installation instructions state to disable SELinux. This is nearly always due to the software author not making the effort to create a SELinux policy for their application, and is not indicative of an incompatibility with SELinux in general. It is often possible to create a policy or set of policies that allow the software to function correctly without removing the protections that SELinux provides.
+
+<br />
+
+### **Default Configuration**
 
 After OS installation is complete and the system restarts into the new environment, the following default configuration is present:
 
@@ -145,6 +168,8 @@ After OS installation is complete and the system restarts into the new environme
     * `PermitRootLogin yes`
     * `PasswordAuthentication yes`
     * `ChallengeResponseAuthentication no`
+
+<br />
 
 ### **Restrict Open Firewall Ports**
 
@@ -163,15 +188,23 @@ success
 
 > `firewalld` implicitly allows ICMP/ICMPv6 traffic inbound to the host. While filtering ICMP/ICMPv6 has often been stated to have security benefits, this assertion has been disproven in innumerable real-world scenarios, and disabling ICMP/ICMPv6 is known to cause a number of functional issues. **ICMP/ICMPv6 SHOULD NOT be filtered by the firewall.**
 
+<br />
+
 ### **Harden `sshd` Configuration**
 
-The default configuration of `sshd` allows `root` to log in to the system via password authentication. Given that password-only (single factor) authentication has long been known to be the weakest form of authentication, this presents a significant vulnerability. There are three options available to remediate this:
+The default configuration of `sshd` allows `root` to log in to the system via password authentication. Given that password-only (single factor) authentication has long been known to be the weakest form of authentication, this presents a significant vulnerability. The `root` user SHOULD NOT be permitted to login via `sshd` using only password authentication.
+
+<br />
+
+There are three options available to remediate this:
 * Restrict `root` login via `sshd` to permit only key-based authentication.
     > Remote monitoring or management solutions may require `root` access via `sshd` to client systems. If this applies to you, this is the correct solution. Prohibiting `root` login via `sshd` entirely may render these solutions nonfunctional.
 * Prohibit `root` login via `sshd` entirely.
 * Implement a second-factor requirement for `root` login via `sshd`.
     
     > There are many options available for multi-factor authentication (MFA) on Linux operating systems. Selecting and configuring such a solution is outside the scope of this guide.
+
+<br />
 
 To restrict `root` login via `sshd` to permit only key-based authentication, edit `/etc/ssh/sshd_config` via your preferred  editor, and change
 ```
@@ -186,7 +219,9 @@ and restart `sshd`:
 # systemctl restart sshd
 ```
 
-To prohibit `root` login via `sshd` entirely, edit `/etc/ssh/sshd_config` via your preferred  editor, and change
+<br />
+
+To prohibit `root` login via `sshd` entirely, edit `/etc/ssh/sshd_config` via your preferred editor, and change
 ```
 PermitRootLogin yes
 ```
@@ -194,12 +229,43 @@ to
 ```
 PermitRootLogin no
 ```
-and restart `sshd`:
+then restart `sshd`:
 ```
 # systemctl restart sshd
 ```
 
-Although compromise of an unprivileged user account does not present the same risk as compromise of the `root` user, similar concerns exist. 
+<br />
+
+Although compromise of an unprivileged user account does not present the same risk as compromise of the `root` user, similar concerns exist.
+
+If stronger authentication for unprivileged users logging in via `sshd` is desired, password-based authentication MAY be disabled completely, thereby forcing all users to log in via ssh key authentication.
+> Be aware that if password authentication is disabled, a user's authorized keys file (`$HOME/.ssh/authorized_keys`) MUST be populated for that user to log in. If this is not completed, the user's account will not be accessible remotely. **You can lock yourself out of a remote system completely, so verify that ssh key authentication works for at least one user with administrative access BEFORE completing the following steps.**
+
+<br />
+
+To disable password authentication within `sshd` completely, edit `/etc/ssh/sshd_config` via your preferred editor, change
+```
+PasswordAuthentication yes
+```
+to
+```
+PasswordAuthentication yes
+```
+and change 
+```
+ChallengeResponseAuthentication yes
+```
+to
+```
+ChallengeResponseAuthentication yes
+```
+then restart `sshd`:
+```
+# systemctl restart sshd
+```
+------
+
+## **Additional Resources**
 
 ------
 
