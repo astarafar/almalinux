@@ -1,6 +1,24 @@
 # **AlmaLinux 8 System Hardening Guide**
 ## **Table of Contents**
-`To be completed when finished.`
+  - [**Purpose and Scope**](#purpose-and-scope)
+  - [**Conventions**](#conventions)
+  - [**Definitions**](#definitions)
+  - [**Introduction**](#introduction)
+    - [**Confidentiality**](#confidentiality)
+    - [**Integrity**](#integrity)
+    - [**Availability**](#availability)
+    - [**System Security: What It Is**](#system-security-what-it-is)
+    - [**System Security: What It Isn't**](#system-security-what-it-isnt)
+    - [**Principle of Least Privilege**](#principle-of-least-privilege)
+  - [**Hardening AlmaLinux 8**](#hardening-almalinux-8)
+    - [**System Updates**](#system-updates)
+    - [**SELinux**](#selinux)
+    - [**Default Configuration**](#default-configuration)
+    - [**Restrict Open Firewall Ports**](#restrict-open-firewall-ports)
+    - [**Harden `sshd` Configuration**](#harden-sshd-configuration)
+  - [**Additional Resources**](#additional-resources)
+  - [**Glossary**](#glossary)
+  - [**License**](#license)
 
 ------
 
@@ -105,13 +123,13 @@ First, let's talk about what security is in the context of a network-connected m
 
 Security in a general sense is the intersection between the following three core concepts:
 
-### **1. Confidentiality**
+### **Confidentiality**
 Confidentiality, in a system security context, is the assurance that information is not disclosed to unauthorized users, processes, or devices. This is the concept of what we traditionally think of as "secrecy," and what most people go to first when they think of security. 
 
-### **2. Integrity**
+### **Integrity**
 Integrity is the assurance that neither the system nor the data contained within has been modified by an unauthorized entity or in an unauthorized way. Compromising this is actually the goal of most non-targeted intrusion attempts. The attacker wants to bring the system under their control so they can use it for their own goals while hiding their activities from the system owner, which leads to the use of rootkits or some other modification to the system; this unauthorized modification is a loss of integrity.
 
-### **3. Availability**
+### **Availability**
 Availability is the assurance that the system can be accessed by an authorized user and perform its intended functions as needed. A denial of service attack that exhausts the system's resources or otherwise makes it so that the system can't be used is an example of loss of availability. An attacker exploiting a recently-disclosed vulnerability and causing the system to panic and halt would be another example of loss of availability.
 
 <br />
@@ -274,6 +292,8 @@ then restart `sshd`:
 ```
 # systemctl restart sshd
 ```
+> :information_source: Both `PasswordAuthentication` and `ChallengeResponseAuthentication` must be set to `no` in order to disable password-based login. Either mechanism will permit password-based login if left enabled.
+
 ------
 
 ## **Additional Resources**
