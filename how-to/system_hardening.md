@@ -139,9 +139,6 @@ success
 * Exploit (noun):
 * Exploit (verb):
 
-# **Credits**
-Written by Connor Sheridan for the AlmaLinux Foundation.
-
 ## **License**
 *AlmaLinux 8 System Hardening Guide* is licensed under a
 Creative Commons Attribution-ShareAlike 4.0 International License.
