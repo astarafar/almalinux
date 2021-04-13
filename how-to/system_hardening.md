@@ -171,7 +171,7 @@ Vendors may tell you that their software is only compatible with a certain point
 ### **SELinux**
 SELinux is an extremely powerful mandatory access control (MAC) layer that is enabled by default within AlmaLinux.
 
-SELinux is capable of blocking a large number of actions that would otherwise result in system promise, and therefore SHOULD NOT be disabled.
+SELinux is capable of blocking a large number of actions that would otherwise result in system compromise, and therefore SHOULD NOT be disabled.
 
 It is acceptable to place the system in `Permissive` mode to perform troubleshooting, but the system SHOULD be returned to `Enforcing` mode as soon as troubleshooting is completed.
 
@@ -278,7 +278,7 @@ PasswordAuthentication yes
 ```
 to
 ```
-PasswordAuthentication yes
+PasswordAuthentication no
 ```
 and change 
 ```
@@ -286,7 +286,7 @@ ChallengeResponseAuthentication yes
 ```
 to
 ```
-ChallengeResponseAuthentication yes
+ChallengeResponseAuthentication no
 ```
 then restart `sshd`:
 ```
