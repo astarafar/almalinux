@@ -2,6 +2,8 @@
 ## **Table of Contents**
 `To be completed when finished.`
 
+------
+
 ## **Purpose and Scope**
 This document is intended to guide a system administrator through the process of hardening the operating system and core services beyond the default measures in place after initial installation.
 
@@ -12,11 +14,11 @@ This document does not cover physical or administrative security concepts or con
 ## **Conventions**
 Definitions, explanations, etc. will be written in plain text.
 
-
+<br />
 
 The names of commands (including full path, if specified), users, groups, services, network protocol names, or other command-related information will be displayed in-line in monospaced type. Examples: `/bin/bash`, `root`, `systemctl`, `dhcpv6-client`.
 
-
+<br />
 
 Commands to enter will be displayed on their own line(s) in monospaced type, as follows. Following typical shell conventions, commands that SHOULD be executed as an unprivileged user will be prefixed with a `$` symbol, while commands that MUST be executed as the root user will be prefixed with a `#` symbol.
 
@@ -27,7 +29,7 @@ $ printf 'This command should be run as an unprivileged user.'
 # printf 'This command should be run as the root user.'
 ```
 
-
+<br />
 
 Shell scripts will be displayed as a fenced code block with syntax highlighting (where appropriate), as follows:
 
@@ -37,7 +39,7 @@ Shell scripts will be displayed as a fenced code block with syntax highlighting 
 printf 'Hello world!'
 ```
 
-
+<br />
 
 Example output will be displayed as a fenced code block, beginning with the command that generated the output, as follows:
 
@@ -59,21 +61,21 @@ ALMALINUX_MANTISBT_PROJECT="AlmaLinux-8"
 ALMALINUX_MANTISBT_PROJECT_VERSION="8.3"
 ```
 
-
+<br />
 
 Explanatory notes, additional information, or references to external resources will be displayed in quote blocks, as follows:
 
 > For more information on GitHub Markdown syntax and capabilities, refer to [Writing on Github](https://docs.github.com/en/github/writing-on-github).
 
-
+<br />
 
 Network ports will be specified in the following form: port/protocol (`service name`). The service name will be omitted if the port in question does not have a service name specified in `/etc/services`, or if the port is being used for a purpose other than that specified in `/etc/services`. 
 
-
+<br />
 
 Unordered lists will be used to provide lists of relevant information.
 
-
+<br />
 
 Ordered lists will be used to specify an order-dependent series of actions.
 
@@ -82,8 +84,6 @@ Ordered lists will be used to specify an order-dependent series of actions.
 ## **Definitions**
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
 > Specific definitions of these terms are provided in [RFC 2119 - Key words for use in RFCs to Indicate Requirement Levels](https://tools.ietf.org/html/rfc2119).
-
-
 
 ## **Introduction**
 
@@ -100,17 +100,11 @@ Integrity is the assurance that neither the system nor the data contained within
 ### **3. Availability**
 Availability is the assurance that the system can be accessed by an authorized user and perform its intended functions as needed. A denial of service attack that exhausts the system's resources or otherwise makes it so that the system can't be used is an example of loss of availability. An attacker exploiting a recently-disclosed vulnerability and causing the system to panic and halt would be another example of loss of availability.
 
-
-
 ### **System Security: What It Is**
 Proper system security is finding the right balance of confidentiality, integrity, and availability based on the purpose of the system and a realistic evaluation of what threats it may face, and putting measures in place to provide the level of protection required.
 
-
-
 ### **System Security: What It Isn't**
 Proper system security is not flipping every switch and turning every dial up to its absolute maximum. It is easy to make the system either completely unusable or so cumbersome that it might as well be, or to expend so much time and resources that the cost of securing the system has exceeded anything you might lose should the system be compromised.
-
-
 
 ### **Principle of Least Privilege**
 One of the core principles behind system security is the *principle of least privilege*, which is the concept that every user, process, service, and so on has only that level of access required to perform its given task, and no more. Where appropriate, notes will be provided indicating how this principle has been applied to a given recommendation. Such notes will be prefixed with the characters "PLP."
@@ -121,11 +115,7 @@ One of the core principles behind system security is the *principle of least pri
 ### **System Updates**
 While this may not be a specific hardening step, the following guidance is probably the single best thing you can do to protect your system:
 
-
-
 ***KEEP YOUR SYSTEM UP TO DATE.***
-
-
 
 This encompasses a number of points:
 
@@ -134,13 +124,9 @@ This encompasses a number of points:
 * Packages SHOULD NOT be excluded or version-locked.
 * Keep abreast of security vulnerability disclosures relevant to the operating system, core services, and anything else you may be running on the system so that you are able to address high-priority issues in a timely manner.
 
-
-
 Vendors may tell you that their software is only compatible with a certain point release. This is almost universally a complete fabrication, because there is nothing special about a given point release; a point release is just a snapshot of what versions were in the repo at a given point in time, and nothing more.
 
 > As always, exceptions exist. Example: The vendor ships a package that relies on a very specific kernel version. In this case, updating the kernel would render that package nonfunctional; this would be a sane reason to version-lock the kernel. However, version-locking packages SHOULD be done as a last resort, as this can have follow-on effects for other packages on the system.
-
-
 
 ### ****Default Configuration****
 
@@ -160,14 +146,10 @@ After OS installation is complete and the system restarts into the new environme
     * `PasswordAuthentication yes`
     * `ChallengeResponseAuthentication no`
 
-
-
 ### **Restrict Open Firewall Ports**
 
 The system's firewall MUST only permit connections to services that are intended to be accessible from outside the system.
 > PLP: Closing all ports except those intended to be externally-accessible prevents unprivileged users from starting listening processes on ports that have been left open but do not have a service attached.
-
-
 
 In the default `firewalld` configuration, 9090/tcp (`cockpit`) is left open as part of the default configuration under the assumption that the standard Server installation includes the `cockpit` packages and interface. If `cockpit` is not installed (as is the case in a minimal installation), or this functionality is not desired, remove this port from the `firewalld` configuration.
 
@@ -181,20 +163,17 @@ success
 
 > `firewalld` implicitly allows ICMP/ICMPv6 traffic inbound to the host. While filtering ICMP/ICMPv6 has often been stated to have security benefits, this assertion has been disproven in innumerable real-world scenarios, and disabling ICMP/ICMPv6 is known to cause a number of functional issues. **ICMP/ICMPv6 SHOULD NOT be filtered by the firewall.**
 
-
 ### **Harden `sshd` Configuration**
 
 The default configuration of `sshd` allows `root` to log in to the system via password authentication. Given that password-only (single factor) authentication has long been known to be the weakest form of authentication, this presents a significant vulnerability. There are three options available to remediate this:
 * Restrict `root` login via `sshd` to permit only key-based authentication.
+    > Remote monitoring or management solutions may require `root` access via `sshd` to client systems. If this applies to you, this is the correct solution. Prohibiting `root` login via `sshd` entirely may render these solutions nonfunctional.
 * Prohibit `root` login via `sshd` entirely.
 * Implement a second-factor requirement for `root` login via `sshd`.
     
-    > There are many options available for multi-factor authentication (MFA) on Linux operating systems. Configuring such a solution is outside the scope of this guide.
-
-
+    > There are many options available for multi-factor authentication (MFA) on Linux operating systems. Selecting and configuring such a solution is outside the scope of this guide.
 
 To restrict `root` login via `sshd` to permit only key-based authentication, edit `/etc/ssh/sshd_config` via your preferred  editor, and change
-
 ```
 PermitRootLogin yes
 ```
@@ -206,6 +185,21 @@ and restart `sshd`:
 ```
 # systemctl restart sshd
 ```
+
+To prohibit `root` login via `sshd` entirely, edit `/etc/ssh/sshd_config` via your preferred  editor, and change
+```
+PermitRootLogin yes
+```
+to
+```
+PermitRootLogin no
+```
+and restart `sshd`:
+```
+# systemctl restart sshd
+```
+
+Although compromise of an unprivileged user account does not present the same risk as compromise of the `root` user, similar concerns exist. 
 
 ------
 
