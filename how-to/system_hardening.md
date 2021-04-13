@@ -5,7 +5,7 @@
 ## Purpose and Scope
 This document is intended to guide a system administrator through the process of hardening the operating system and core services beyond the default measures in place after initial installation.
 
-This document does not cover physical or administrative security concepts or controls, nor does it cover application-specific (httpd, postfix, etc.) concerns.
+This document does not cover physical or administrative security concepts or controls, nor does it cover application-specific (httpd, postfix, etc.) concerns. (Yet. I plan to expand into **very** common application-specific things once the initial phase of this document is complete.)
 
 ## Definitions
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
