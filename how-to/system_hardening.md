@@ -69,7 +69,7 @@ Explanatory notes, additional information, or references to external resources w
 
 <br />
 
-Notes with additional information that has a security impact that should be considered before implementing will be displayed in quote blocks with a warning symbol, as follows:
+Notes with additional information that has a security or functionality impact that should be considered before implementing will be displayed in quote blocks with a warning symbol, as follows:
 
 > :warning: Take everything you read on the Internet with a grain of salt.
 
@@ -95,7 +95,7 @@ Ordered lists will be used to specify an order-dependent series of actions.
 
 ## **Definitions**
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119.
-> Specific definitions of these terms are provided in [RFC 2119 - Key words for use in RFCs to Indicate Requirement Levels](https://tools.ietf.org/html/rfc2119).
+> :information_source: Specific definitions of these terms are provided in [RFC 2119 - Key words for use in RFCs to Indicate Requirement Levels](https://tools.ietf.org/html/rfc2119).
 
 ------
 
@@ -146,7 +146,7 @@ This encompasses a number of points:
 
 Vendors may tell you that their software is only compatible with a certain point release. This is almost universally a complete fabrication, because there is nothing special about a given point release; a point release is just a snapshot of what versions were in the repo at a given point in time, and nothing more.
 
-> As always, exceptions exist. Example: The vendor ships a package that relies on a very specific kernel version. In this case, updating the kernel would render that package nonfunctional; this would be a sane reason to version-lock the kernel. However, version-locking packages SHOULD be done as a last resort, as this can have follow-on effects for other packages on the system.
+> :information_source: As always, exceptions exist. Example: The vendor ships a package that relies on a very specific kernel version. In this case, updating the kernel would render that package nonfunctional; this would be a sane reason to version-lock the kernel. However, version-locking packages SHOULD be done as a last resort, as this can have follow-on effects for other packages on the system.
 
 <br />
 
@@ -175,7 +175,7 @@ After OS installation is complete and the system restarts into the new environme
     * 9090/tcp (`cockpit`)
     * 546/udp (`dhcpv6-client`)
         
-        > Note: this port is only open to IPv6 peers on the same subnet, and is not reachable by Internet hosts or hosts on other subnets.
+        > :information_source: This port is only open to IPv6 peers on the same subnet, and is not reachable by Internet hosts or hosts on other subnets.
 * Pertinent `sshd` configuration elements (`/etc/ssh/sshd_config`):
     * `PermitRootLogin yes`
     * `PasswordAuthentication yes`
@@ -186,7 +186,7 @@ After OS installation is complete and the system restarts into the new environme
 ### **Restrict Open Firewall Ports**
 
 The system's firewall MUST only permit connections to services that are intended to be accessible from outside the system.
-> PLP: Closing all ports except those intended to be externally-accessible prevents unprivileged users from starting listening processes on ports that have been left open but do not have a service attached.
+> :information_source: PLP: Closing all ports except those intended to be externally-accessible prevents unprivileged users from starting listening processes on ports that have been left open but do not have a service attached.
 
 In the default `firewalld` configuration, 9090/tcp (`cockpit`) is left open as part of the default configuration under the assumption that the standard Server installation includes the `cockpit` packages and interface. If `cockpit` is not installed (as is the case in a minimal installation), or this functionality is not desired, remove this port from the `firewalld` configuration.
 
@@ -196,9 +196,9 @@ success
 # firewall-cmd --remove-service=cockpit --permanent
 success
 ```
-> `firewalld` operates using two configuration sets: the running configuration, and the persistent, or permanent, configuration. The first command above modifies the running configuration, but this will be lost upon restarting the `firewalld` service or the system itself. The second command commits this change to the permanent configuration so that it remains upon service or system restart.
+> :information_source: `firewalld` operates using two configuration sets: the running configuration, and the persistent, or permanent, configuration. The first command above modifies the running configuration, but this will be lost upon restarting the `firewalld` service or the system itself. The second command commits this change to the permanent configuration so that it remains upon service or system restart.
 
-> `firewalld` implicitly allows ICMP/ICMPv6 traffic inbound to the host. While filtering ICMP/ICMPv6 has often been stated to have security benefits, this assertion has been disproven in innumerable real-world scenarios, and disabling ICMP/ICMPv6 is known to cause a number of functional issues. **ICMP/ICMPv6 SHOULD NOT be filtered by the firewall.**
+> :warning: `firewalld` implicitly allows ICMP/ICMPv6 traffic inbound to the host. While filtering ICMP/ICMPv6 has often been stated to have security benefits, this assertion has been disproven in innumerable real-world scenarios, and disabling ICMP/ICMPv6 is known to cause a number of functional issues. **ICMP/ICMPv6 SHOULD NOT be filtered by the firewall.**
 
 <br />
 
@@ -210,11 +210,10 @@ The default configuration of `sshd` allows `root` to log in to the system via pa
 
 There are three options available to remediate this:
 * Restrict `root` login via `sshd` to permit only key-based authentication.
-    > Remote monitoring or management solutions may require `root` access via `sshd` to client systems. If this applies to you, this is the correct solution. Prohibiting `root` login via `sshd` entirely may render these solutions nonfunctional.
+    > :warning: Remote monitoring or management solutions may require `root` access via `sshd` to client systems. If this applies to you, this is the correct solution. Prohibiting `root` login via `sshd` entirely may render these solutions nonfunctional.
 * Prohibit `root` login via `sshd` entirely.
 * Implement a second-factor requirement for `root` login via `sshd`.
-    
-    > There are many options available for multi-factor authentication (MFA) on Linux operating systems. Selecting and configuring such a solution is outside the scope of this guide.
+    > :information_source: There are many options available for multi-factor authentication (MFA) on Linux operating systems. Selecting and configuring such a solution is outside the scope of this guide.
 
 <br />
 
@@ -251,7 +250,7 @@ then restart `sshd`:
 Although compromise of an unprivileged user account does not present the same risk as compromise of the `root` user, similar concerns exist.
 
 If stronger authentication for unprivileged users logging in via `sshd` is desired, password-based authentication MAY be disabled completely, thereby forcing all users to log in via ssh key authentication.
-> Be aware that if password authentication is disabled, a user's authorized keys file (`$HOME/.ssh/authorized_keys`) MUST be populated for that user to log in. If this is not completed, the user's account will not be accessible remotely. **You can lock yourself out of a remote system completely, so verify that ssh key authentication works for at least one user with administrative access BEFORE completing the following steps.**
+> :exclamation: Be aware that if password authentication is disabled, a user's authorized keys file (`$HOME/.ssh/authorized_keys`) MUST be populated for that user to log in. If this is not completed, the user's account will not be accessible remotely. **You can lock yourself out of a remote system completely, so verify that ssh key authentication works for at least one user with administrative access BEFORE completing the following steps.**
 
 <br />
 
