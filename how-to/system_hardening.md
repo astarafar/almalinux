@@ -1,4 +1,7 @@
 # **AlmaLinux 8 System Hardening Guide**
+
+**This is a work in progress.** If things look unfinished, they probably are.
+
 ## **Table of Contents**
   - [**Purpose and Scope**](#purpose-and-scope)
   - [**Conventions**](#conventions)
