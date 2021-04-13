@@ -292,7 +292,7 @@ then restart `sshd`:
 ```
 # systemctl restart sshd
 ```
-> :information_source: Both `PasswordAuthentication` and `ChallengeResponseAuthentication` must be set to `no` in order to disable password-based login. Either mechanism will permit password-based login if left enabled.
+> :warning: Both `PasswordAuthentication` and `ChallengeResponseAuthentication` must be set to `no` in order to disable password-based login. Either mechanism will permit password-based login if left enabled.
 
 ------
 
