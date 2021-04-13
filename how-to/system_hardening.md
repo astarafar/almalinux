@@ -65,7 +65,19 @@ ALMALINUX_MANTISBT_PROJECT_VERSION="8.3"
 
 Explanatory notes, additional information, or references to external resources will be displayed in quote blocks, as follows:
 
-> For more information on GitHub Markdown syntax and capabilities, refer to [Writing on Github](https://docs.github.com/en/github/writing-on-github).
+> :information_source: For more information on GitHub Markdown syntax and capabilities, refer to [Writing on Github](https://docs.github.com/en/github/writing-on-github).
+
+<br />
+
+Notes with additional information that has a security impact that should be considered before implementing will be displayed in quote blocks with a warning symbol, as follows:
+
+> :warning: Take everything you read on the Internet with a grain of salt.
+
+<br />
+
+Notes with additional information describing a danger to the confidentiality, integrity, or availability of the system will be displayed in quote blocks with an exclamation symbol, as follows:
+
+> :exclamation: Do not pipe `curl` directly into `bash`, as this may result in the execution of malicious shell scripts on the system.
 
 <br />
 
