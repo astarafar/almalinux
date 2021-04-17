@@ -226,9 +226,38 @@ success
 # firewall-cmd --remove-service=cockpit --permanent
 success
 ```
+
 > :information_source: `firewalld` operates using two configuration sets: the running configuration, and the persistent, or permanent, configuration. The first command above modifies the running configuration, but this will be lost upon restarting the `firewalld` service or the system itself. The second command commits this change to the permanent configuration so that it remains upon service or system restart.
 
-> :warning: `firewalld` implicitly allows ICMP/ICMPv6 traffic inbound to the host. While filtering ICMP/ICMPv6 has often been stated to have security benefits, this assertion has been disproven in innumerable real-world scenarios, and disabling ICMP/ICMPv6 is known to cause a number of functional issues. **ICMP/ICMPv6 SHOULD NOT be filtered by the firewall.**
+<br />
+
+### **Allow ICMP/ICMPv6 Traffic**
+
+`firewalld`, by default, blocks ICMP/ICMPv6 traffic inbound to the host. While filtering ICMP/ICMPv6 has often been stated to have security benefits, this assertion has been disproven in innumerable real-world scenarios, and disabling ICMP/ICMPv6 is known to cause a number of functional issues. To avoid these issues, it is strongly recommended to allow ICMP/ICMPv6 traffic:
+```
+# firewall-cmd --add-protocol=icmp
+success
+# firewall-cmd --add-protocol=icmp --permanent
+success
+# firewall-cmd --add-protocol=ipv6-icmp
+success
+# firewall-cmd --add-protocol=ipv6-icmp --permanent
+success
+```
+
+> :information_source: For the pedantic, the protocol is correctly referred to as IPv6-ICMP, but ICMPv6 is a common shorthand.
+
+<br />
+
+### **Drop All Non-Permitted Traffic**
+`firewalld`, by default, actively rejects inbound connection attempts to ports or via protocols that are not listed in the zone's configuration. It is strongly recommended to change this behavior to silently drop non-permitted traffic.
+
+```
+# firewall-cmd --set-target=DROP --permanent
+success
+```
+
+> :information_source: The `set-target` action does not have a runtime configuration option, and will not take effect until `firewalld` is restarted, either via service restart or system restart.
 
 <br />
 
@@ -306,12 +335,76 @@ then restart `sshd`:
 ```
 > :warning: Both `PasswordAuthentication` and `ChallengeResponseAuthentication` must be set to `no` in order to disable password-based login. Either mechanism will permit password-based login if left enabled.
 
-> :information_source: **STO**: It is a common misconception that changing the `sshd` service port away from its default (22/tcp) provides a measure of security by concealing the presence of a listening `sshd` service on the system. The presence of a listening `sshd` service, and the port to which that service is attached, **is an implementation detail of the system, not a secret**. It is trivial to probe the system over the network (e.g. via `nmap`) and find the `sshd` service and its associated port. Internet-connected systems are subjected to these kinds of probes on a constant basis, and any listening services will be discovered very quickly.
+> :information_source: **STO**: It is a common misconception that changing the `sshd` service port away from its default (22/tcp) provides a measure of security by concealing the presence of a listening `sshd` service on the system. The presence of a listening `sshd` service, and the port to which that service is attached, **is an implementation detail of the system, not a secret**. It is trivial to probe the system over the network (e.g. via `nmap`) and find the `sshd` service and its associated port. Internet-connected systems are constantly subjected to these kinds of probes, and any listening services will be discovered very quickly.
+>
+>```
+># time nmap -Av -T4 -p1-65535 192.88.99.100
+>[...]
+>PORT      STATE SERVICE VERSION
+>43763/tcp open  ssh     OpenSSH 8.0 (protocol 2.0)
+>| ssh-hostkey:
+>|   3072 c7:17:fb:fb:ff:91:e8:ba:6b:fd:9c:27:40:ae:3e:0f (RSA)
+>|   256 3f:13:c9:bc:c4:1b:08:ec:c3:5c:21:25:11:84:ab:1f (ECDSA)
+>|_  256 a7:c9:25:67:e6:dc:7f:13:fd:73:3a:20:a0:2c:c8:5d (ED25519)
+>[...]
+>real    17m43.575s
+>user    0m5.436s
+>sys     0m7.276s
+>```
+>
+> As you can see, changing the `sshd` service port to a non-default value provides no security benefit.
+
+<br />
+
+### **Limit Authentication Attempts**
+As noted previously, any system in which `sshd` is exposed to the Internet will be subject to a constant bombardment of attempts to gain access to the system. The overwhelming majority of these attempts are the result of botnet activity. The attacker's objective is to gain access to poorly-secured systems and expand the pool of available zombies for the botnet. Obviously, we have no intention of being a poorly-secured system - you are reading this document, after all - so these are of relatively little concern. However, they **are** annoying and can cause a great deal of noise in the `sshd` service log.
+
+We can significantly reduce the volume of these attempts by utilizing `fail2ban`.
+
+The general concept of `fail2ban` is that a given service's log (`fail2ban` is capable of monitoring multiple services) is monitored for events corresponding to failed authentication attempts. If a given number of failed authentication attempts from the same source are observed within a certain window of time, that source is blocked (typically at the firewall level) for a given amount of time.
+
+> :information_source: `fail2ban` is not available in the default AlmaLinux package repositories. Before continuing, you will need to enable the Extra Packages for Enterprise Linux (EPEL) repository provided by the Fedora project, located here: https://fedoraproject.org/wiki/EPEL
+
+The most common use of `fail2ban` is to limit `ssh` connection attempts and significantly reduce the volume of automated connection attempts of the kind discussed previously.
+
+While the global configuration file for `fail2ban` is located at `/etc/fail2ban/jail.conf`, we will not be modifying this file. This will prevent configuration issues in the event that the file is modified or overwritten by a package upgrade. Instead, we will define our `fail2ban` configuration in `/etc/fail2ban/jail.local`.
+
+Our configuration file will contain two sections: a default configuration common to all protected services, and one or more services to protect.
+
+The following is an example configuration file that would protect `sshd`, and a definition of the most common fields in a functional `fail2ban` configuration:
+
+#### **Example Configuration File**
+
+```
+[DEFAULT] 
+ignoreip = 198.51.100.0/24
+findtime  = 900
+maxretry = 5
+bantime  = 3600
+banaction = nftables[type=multiport]
+backend = systemd
+
+[sshd] 
+enabled = true
+```
+
+#### **Field Definitions**
+`ignoreip` - Any IP within this range will be ignored by `fail2ban`. Authentication failures originating from clients within this range will not be tallied, and no ban actions will be taken.
+
+`findtime` - The rolling window of time, measured in seconds, within which to monitor for and count authentication failures.
+
+`maxretry` - The number of authentication failures from a single source that, if all observed within the previous `findtime` seconds, will trigger the `banaction`.
+
+`banaction` - The action to perform upon observing `maxretry` authentication failures from a single source within the last `findtime` seconds.
+
+`bantime` - After the `banaction` has been triggered, wait for this amount of time (measured in seconds) before reversing the `banaction`.
+
+`backend` - Use the specified mechanism to monitor the service log for authentication failures. Typically, this will be `systemd`, causing `fail2ban` to monitor the service journal.
 
 <br />
 
 ### **To Do**
-* fail2ban
+* Finish `fail2ban`
 * ...
 
 ------
