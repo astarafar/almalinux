@@ -150,6 +150,15 @@ Proper system security is not flipping every switch and turning every dial up to
 ### **Principle of Least Privilege**
 One of the core principles behind system security is the *principle of least privilege*, which is the concept that every user, process, service, and so on has only that level of access required to perform its given task, and no more. Where appropriate, notes will be provided indicating how this principle has been applied to a given recommendation. Such notes will be prefixed with the characters "PLP."
 
+<br />
+
+### **Security Through Obscurity**
+Famous mathematician Claude Shannon, widely known as "the father of information theory," put forth an assertion (referred to generally as Shannon's Maxim) that lies at the foundation of modern information security theory and practice: "The enemy knows the system."
+
+In a more concrete formulation, this means that the system administrator - you - should always assume that any implementation details about your system are immediately known to any attacker. Only ACTUAL secrets (cryptographic keys, passwords, etc.) are expected to remain secret. Anything that can be trivially discovered simply by looking for it, such as open ports and protocols, which services are running, their versions, etc.) cannot be treated as "secret." As a consequence, measures taken to conceal - also known as **obscure** - these implementation details from an attacker have a real-world security value of **absolutely zero**, either as an individual measure or as part of a defense-in-depth approach.
+
+Any recommendation in this guide that is commonly the subject of zero-value obscuring measures will include a note, prefixed with the characters "STO," discussing what those obscuring measures are and why they provide no value.
+
 ------
 
 ## **Hardening AlmaLinux 8**
@@ -207,7 +216,7 @@ After OS installation is complete and the system restarts into the new environme
 ### **Restrict Open Firewall Ports**
 
 The system's firewall MUST only permit connections to services that are intended to be accessible from outside the system.
-> :information_source: PLP: Closing all ports except those intended to be externally-accessible prevents unprivileged users from starting listening processes on ports that have been left open but do not have a service attached.
+> :information_source: **PLP**: Closing all ports except those intended to be externally-accessible prevents unprivileged users from starting listening processes on ports that have been left open but do not have a service attached.
 
 In the default `firewalld` configuration, 9090/tcp (`cockpit`) is left open as part of the default configuration under the assumption that the standard Server installation includes the `cockpit` packages and interface. If `cockpit` is not installed (as is the case in a minimal installation), or this functionality is not desired, remove this port from the `firewalld` configuration.
 
@@ -296,6 +305,8 @@ then restart `sshd`:
 # systemctl restart sshd
 ```
 > :warning: Both `PasswordAuthentication` and `ChallengeResponseAuthentication` must be set to `no` in order to disable password-based login. Either mechanism will permit password-based login if left enabled.
+
+> :information_source: **STO**: It is a common misconception that changing the `sshd` service port away from its default (22/tcp) provides a measure of security by concealing the presence of a listening `sshd` service on the system. The presence of a listening `sshd` service, and the port to which that service is attached, **is an implementation detail of the system, not a secret**. It is trivial to probe the system over the network (e.g. via `nmap`) and find the `sshd` service and its associated port. Internet-connected systems are subjected to these kinds of probes on a constant basis, and any listening services will be discovered very quickly.
 
 <br />
 
